@@ -3,7 +3,7 @@ from factor import all_factors
 from duplication import get_duplicates
 
 
-for A_w in range(1, 101):
+for A_w in range(1, 1001):
     factored = all_factors(A_w)
     # tuples in the list `factored` will always be length 2 or more
     possible_agesets = [AgeSet(x) for x in factored]
@@ -22,7 +22,11 @@ for A_w in range(1, 101):
             for poss_size in dup_sizes:
                 all_dupsized_agesets = [a for a in possible_agesets[1:] if a.n_children == poss_size]
                 totals = [a.total for a in all_dupsized_agesets]
-                products = [a.product for a in all_dupsized_agesets]
+                dup_totals = get_duplicates(totals)
+                if len(dup_totals) < 1:
+                    # Looking for agesets with duplicated sums
+                    continue
                 for a_s in all_dupsized_agesets:
-                    print(f"A_w = {A_w}:", a_s)
+                    if a_s.total in dup_totals:
+                        print(f"A_w = {A_w}:", a_s)
                 print()
