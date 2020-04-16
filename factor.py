@@ -1,6 +1,43 @@
 from itertools import chain, product as combine
 
 
+def all_factors(n):
+    initial_factorisation = factorise(n)
+    total_factorisation = list(chain(*recursive_factorisation(initial_factorisation)))
+    return initial_factorisation + dedup_list(total_factorisation)
+
+
+def recursive_factorisation(initial_factorisation):
+    for i_f in initial_factorisation:
+        subfactorisation = factorise_further(i_f, expand=True, rearrangements=False)
+        if initial_factorisation != subfactorisation:
+            subfactor_list = [f for f in subfactorisation if f != i_f]
+            if len(subfactor_list) > 0:
+                yield subfactor_list
+                yield from recursive_factorisation(subfactor_list)
+
+
+def dedup_list(dup_list):
+    """
+    Remove rearrangements (permutations) by iterating through all the items in the
+    list, storing each as a sorted list, then comparing the sorted form of every
+    encountered one (as `visible`) against this `seen_set`.
+    
+    Used to deduplicate the flattened list returned from
+    `factorise_further(without_rearrangements=True)`, as well as to deduplicate the
+    total factorisation returned from `recursive_factorisation` in the body of the
+    `all_factors` function.
+    """
+    seen_set = set()
+    without_rearrangements = []
+    for x in dup_list:
+        visible = tuple(sorted(x))
+        if visible not in seen_set:
+            seen_set.add(visible)
+            without_rearrangements.append(x)
+    return without_rearrangements
+
+
 def factorise(n, nontrivial_only=False):
     """
     Return all pairs of factors. If `nontrivial_only` is True, omit the trivial
@@ -13,10 +50,10 @@ def factorise(n, nontrivial_only=False):
     return factorisations
 
 
-def factorise_further(factorisation_tuple, expand_out=False, with_rearrangements=True):
+def factorise_further(factor_tuple, expand=False, rearrangements=True):
     """
-    Given an initial factorisation, `factorisation_tuple`, find all pairs of factors
-    returned by `factorise(n)` for each factor `n` in `factorisation_tuple`.
+    Given an initial factorisation, `factor_tuple`, find all pairs of factors
+    returned by `factorise(n)` for each factor `n` in `factor_tuple`.
 
     Note: this function is to be passed one tuple representing a factorisation,
     not a list of tuples representing multiple possible factorisations!
@@ -28,7 +65,7 @@ def factorise_further(factorisation_tuple, expand_out=False, with_rearrangements
     list (that list may then be factored further, and so on).
 
     This function will return the lists of further factorisations for each of the
-    integers given in the tuple `factorisation_tuple`.
+    integers given in the tuple `factor_tuple`.
 
     E.g. given (1,1)   ==>   [[1], [1]]
                (1,2)   ==>   [[1], [2]]
@@ -39,7 +76,7 @@ def factorise_further(factorisation_tuple, expand_out=False, with_rearrangements
 
     and so on.
 
-    If `expand_out` is True (default: False), these will be expanded out to the list of
+    If `expand` is True (default: False), these will be expanded out to the list of
     all possible combinations (i.e. all possible factorisations) using the
     `itertools.product` function (which is imported under the alias `combine`).
 
@@ -50,11 +87,11 @@ def factorise_further(factorisation_tuple, expand_out=False, with_rearrangements
                (4,5)   ==>   [(4, 5), (2, 2, 5)]
                ...
 
-    If `with_rearrangements` is False (default: True), rearrangements will not removed
-    from the results. In the previous example, shown for `with_rearrangements` as True,
+    If `rearrangements` is False (default: True), rearrangements will not removed
+    from the results. In the previous example, shown for `rearrangements` as True,
     for example the line for `(4,4)` contains both `(4,2,2)` and `(2,2,4)`, arising
     by splitting the first 4 and the second 4 into `(2,2)` before flattening the
-    list. Below are the same examples for `with_rearrangements` set to False.
+    list. Below are the same examples for `rearrangements` set to False.
 
     E.g. given (1,1)   ==>   [(1, 1)]
                (1,2)   ==>   [(1, 2)]
@@ -75,29 +112,23 @@ def factorise_further(factorisation_tuple, expand_out=False, with_rearrangements
     that integer, n).
     """
     complete_factorisations = []
-    for n_in_tuple, factor in enumerate(factorisation_tuple):
+    for n_in_tuple, factor in enumerate(factor_tuple):
         extra_factorisations = [factor] # extra factorisations will be appended later
         initial_factorisations = factorise(factor, nontrivial_only=True)
         # This loop will be skipped if `factor` admits only the trivial factorisation:
         for factorisation in initial_factorisations:
             extra_factorisations.append(factorisation)
         complete_factorisations.append(extra_factorisations)
-    if expand_out:
+    if expand:
         all_factorisations = list(combine(*complete_factorisations))
         all_factorisations_flattened = []
         for comb in all_factorisations:
             flat = chain.from_iterable([[a] if type(a) == int else a for a in comb])
             all_factorisations_flattened.append(tuple(flat))
-        if with_rearrangements:
+        if rearrangements:
             return all_factorisations_flattened
         else:
-            seen_set = set()
-            without_rearrangements = []
-            for a_f_f in all_factorisations_flattened:
-                visible = tuple(sorted(a_f_f))
-                if visible not in seen_set:
-                    seen_set.add(visible)
-                    without_rearrangements.append(a_f_f)
+            without_rearrangements = dedup_list(all_factorisations_flattened)
             return without_rearrangements
     else:
         return complete_factorisations
