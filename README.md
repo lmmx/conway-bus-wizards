@@ -17,7 +17,7 @@ Following my hunch on the Conway bus wizards problem:
 (via [Robin Houston](https://twitter.com/robinhouston/status/1250760912908234752)
 on Twitter, April 16th 2020)
 
-By my calculations the answer is given in this file: [Answer.md](Answer.md)
+By my calculations the answer is given in this file: [answer.md](answer.md)
 
 **Update:** my hunch is not correct: we must assume that both wizards know
 the number of the bus they are travelling on, which my tentative answer
