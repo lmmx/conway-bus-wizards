@@ -7,6 +7,7 @@
 from operator import mul
 from functools import reduce
 
+
 class AgeSet(object):
     def __init__(self, age_list):
         assert len(age_list) > 1, ValueError("Must give more than one age")
@@ -14,7 +15,16 @@ class AgeSet(object):
         assert age_int_check, TypeError("The ages provided are not all integers")
         self.ages = age_list
         return
-    
+
+    def __repr__(self):
+        r = f"|X|={self.n_children}, X=({self.ages}), ΣX={self.total}"
+        return r
+
+
+    def __full_repr__(self):
+        r = f"X=({self.ages}), ΣX={self.total}, ΠX={self.product}"
+        return r
+
     @property
     def n_children(self):
         return len(self.ages)

@@ -1,4 +1,5 @@
 from itertools import chain, product as combine
+from duplication import dedup_list
 
 
 def all_factors(n):
@@ -15,27 +16,6 @@ def recursive_factorisation(initial_factorisation):
             if len(subfactor_list) > 0:
                 yield subfactor_list
                 yield from recursive_factorisation(subfactor_list)
-
-
-def dedup_list(dup_list):
-    """
-    Remove rearrangements (permutations) by iterating through all the items in the
-    list, storing each as a sorted list, then comparing the sorted form of every
-    encountered one (as `visible`) against this `seen_set`.
-    
-    Used to deduplicate the flattened list returned from
-    `factorise_further(without_rearrangements=True)`, as well as to deduplicate the
-    total factorisation returned from `recursive_factorisation` in the body of the
-    `all_factors` function.
-    """
-    seen_set = set()
-    without_rearrangements = []
-    for x in dup_list:
-        visible = tuple(sorted(x))
-        if visible not in seen_set:
-            seen_set.add(visible)
-            without_rearrangements.append(x)
-    return without_rearrangements
 
 
 def factorise(n, nontrivial_only=False):
@@ -113,7 +93,7 @@ def factorise_further(factor_tuple, expand=False, rearrangements=True):
     """
     complete_factorisations = []
     for n_in_tuple, factor in enumerate(factor_tuple):
-        extra_factorisations = [factor] # extra factorisations will be appended later
+        extra_factorisations = [factor]  # extra factorisations will be appended later
         initial_factorisations = factorise(factor, nontrivial_only=True)
         # This loop will be skipped if `factor` admits only the trivial factorisation:
         for factorisation in initial_factorisations:
